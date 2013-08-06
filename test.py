@@ -8,8 +8,6 @@ import sys
 import shutil
 
 def start_test():
-	#杀死当前运行的mobogenie进程
-	kill_process()
 	screenshot_dir = os.path.normcase(current_path + r'/screenshot/')
 	delete_dir(screenshot_dir)
 	#获取配置文件
@@ -39,6 +37,11 @@ def start_test():
 				parameter = child.SelectSingleNode("Parameter").InnerText
 				script_name = child.SelectSingleNode("Test_Script_Name").InnerText
 				option = child.SelectSingleNode("Option").InnerText
+				parameter_list = []
+				if parameter.find('/') != -1:
+					parameter_list = parameter.split('/')
+				else:
+					parameter_list.append(parameter)
 				# module = child.find('Module').text
 				# des = child.find('Test_Case_Description').text
 				# expect = child.find('Expected_Result').text
@@ -56,12 +59,12 @@ def start_test():
 					logger.write("execute", script_name)
 					start_time = time.time()
 					#eval(script_name)(num, case_id, parameter)
-					eval('test_ttt')(parameter)
+					eval(script_name)(parameter_list)
 					stop_time = time.time()
 					case_info.run_time = float(stop_time - start_time)
 					check_point()
 			rs.action_wait2(2)		
-			kill_process()
+			#kill_process()
 			rs.action_wait2(10)
 		except Exception as e:
 			logger.write(str(e), 1)

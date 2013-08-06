@@ -10,20 +10,33 @@ except IndexError:
 
 def action_click(img):
     try:
-        click(img)
+        screen = Screen()
+        region = Region.create(screen.getBounds())
+        img_region = region.getRegionFromPSRM(img)
+        img_region.highlight(1)
+        region.click(img_region)
         return 0
     except FindFailed:
         return "[%s] not Found" % img
 
 def action_click_offset(img, x, y):
     try:
-        click(Pattern(img).targetOffset(x,y))
+        screen = Screen()
+        region = Region.create(screen.getBounds())
+        img_pattern = Pattern(img).targetOffset(x, y)
+        img_region = region.getRegionFromPSRM(img_pattern)
+        img_region.highlight(1)
+        region.click(img_region)
         return 0
     except FindFailed:
         return "[%s] not Found" % img    
 
 def action_check(img, seconds=3):
     if exists(img, seconds):
+        screen = Screen()
+        region = Region.create(screen.getBounds())
+        img_region = region.getRegionFromPSRM(img)
+        img_region.highlight(1)
         return 0
     else:
         return 1
@@ -61,7 +74,7 @@ def action_typekey(key1,key2='a'):
         type(key1)
     elif key2 == 'down':
         type(Key.DOWN)
-    else:
+    elif key2 == 'enter':
         type(key1+Key.ENTER)
     return 0
 
@@ -105,8 +118,44 @@ def action_capture(img_name):
 
 def action_hover(img):
     try:
-        hover(img)
+        screen = Screen()
+        region = Region.create(screen.getBounds())
+        img_region = region.getRegionFromPSRM(img)
+        img_region.highlight(1)
+        region.hover(img_region)
         return 0
+    except FindFailed:
+        return "[%s] not Found" % img
+
+def action_click_by_path(img_string):
+    try:
+        screen = Screen()
+        region = Region.create(screen.getBounds())
+        img_list = img_string.split('/')
+        img_region = action_walk_in_region(region, img_list, 0)
+        region.click(img_region)
+    except FindFailed:
+        return "[%s] not Found" % img_string
+
+def action_walk_in_region(region, img_list, id):
+    try:
+        sub_region = region.getRegionFromPSRM(img_list[id])
+        sub_region.highlight(1)
+        if id + 1 <= len(img_list) -1:
+            sub_region = action_walk_in_region(sub_region, img_list, id + 1)
+        return sub_region
+    except FindFailed:
+        return "[%s] not Found" % img_list[id]
+
+def action_findall_number(img):
+    try:
+        pic_list = findAll(img)
+        temp = []
+        for pic in pic_list:
+            temp.append(pic)
+            region.getRegionFromPSRM(pic).highlight(1)
+            hover(pic)
+        return len(temp)
     except FindFailed:
         return "[%s] not Found" % img
 
@@ -129,5 +178,8 @@ srv.register_function(action_hover)
 srv.register_function(action_click_offset)
 srv.register_function(action_close_by_key)
 srv.register_function(action_select_all_key)
+srv.register_function(action_click_by_path)
+srv.register_function(action_walk_in_region)
+srv.register_function(action_findall_number)
 
 srv.serve_forever()

@@ -8,9 +8,9 @@ import platform
 import fnmatch
 import shutil
 from library import *
-from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import fromstring
-from xml.etree.ElementTree import Element
+# from xml.etree import ElementTree as ET
+# from xml.etree.ElementTree import fromstring
+# from xml.etree.ElementTree import Element
 
 clr.AddReference("System.XML")
 from System.Xml import *
@@ -19,10 +19,101 @@ rs = xmlrpclib.ServerProxy("http://127.0.0.1:1338", allow_none=True)
 os_platform = platform.platform()
 current_time = time.strftime('%Y-%m-%d-%H-%M',time.localtime(time.time()))
 current_path = os.getcwd()
-config_file_path = os.path.normcase(current_path + r'/config/demo.xls.xml')
 logpath = os.path.normcase(current_path + r'/log/' + str(current_time) + '.txt')
 logger = log(logpath)
 case_info = case_info()
+
+def wait_check_click(img, time_out):
+	tmp = rs.action_wait(img, time_out)
+	logger.write("action_wait " + img, tmp)
+	tmp = rs.action_check(img)
+	logger.write("action_check " + img, tmp)
+	if tmp == 0:
+		tmp = rs.action_click(img)
+		logger.write("action_click " + img, tmp)
+	return tmp
+
+def wait_check_offsetclick(img, time_out, x, y):
+	tmp = rs.action_wait(img, time_out)
+	logger.write("action_wait " + img, tmp)
+	tmp = rs.action_check(img)
+	logger.write("action_check " + img, tmp)
+	if tmp == 0:
+		tmp = rs.action_click_offset(img, x, y)
+		logger.write("action_click_offset " + img, tmp)
+	return tmp
+
+def wait_check(img, time_out):
+	tmp = rs.action_wait(img, time_out)
+	logger.write("action_wait " + img, tmp)
+	tmp = rs.action_check(img)
+	logger.write("action_check " + img, tmp)
+	return tmp
+
+def click(img):
+	tmp = rs.action_click(img)
+	logger.write("action_click " + img, tmp)
+	return tmp
+
+def check(img):
+	tmp = rs.action_check(img)
+	logger.write("action_check " + img, tmp)
+	return tmp
+
+def click_offset(img, x, y):
+	tmp = rs.action_click_offset(img, x, y)
+	logger.write("action_click_offset " + img + " " + str(x) + "/" +str(y), tmp)
+	return tmp
+
+def wait_image(img, time_out):
+	tmp = rs.action_wait(img, time_out)
+	logger.write("action_wait_image " + img + " " + str(time_out), tmp)
+	return tmp
+
+def sleep(time_out):
+	tmp = rs.action_wait2(time_out)
+	logger.write("action_sleep " + str(time_out), tmp)
+	return tmp
+
+def wait_vanish(img, time_out):
+	tmp = rs.action_waitVanish(img, time_out)
+	logger.write("action_waitVanish " + img, tmp)
+	return tmp
+
+def type(key, option, img = ""):
+	if option == "string":
+		tmp = rs.action_typekey(key, "abc")
+		logger.write("action_typekey string " + str(key), tmp)
+	elif option == "down":
+		tmp = rs.action_typekey(key, "down")
+		logger.write("action_typekey down ", tmp)
+	elif option == "enter":
+		tmp = rs.action_typekey(key, "enter")
+		logger.write("action_typekey enter ", tmp)
+	elif option == "img":
+		tmp = rs.action_type(key, img)
+		logger.write("action_type to image " + str(key) + " " + img, tmp)
+	elif option == "select_all":
+		tmp = rs.action_select_all_key()
+		logger.write("action_select_all_key", tmp)
+	elif option == "alt_f4":
+		tmp = rs.action_close_by_key()
+		logger.write("action_close_by_key", tmp)
+	return tmp
+
+def check_imagelist(img_string):
+	img_list = img_string.split('/')
+	count = 0
+	for img in img_list:
+		tmp = rs.action_check(case_info.case_id + "\\" + img)
+		logger.write(case_info.case_id + "\\" + img, tmp)
+		if tmp == 0:
+			count = count + 1
+	if count == len(img_list):
+		tmp = 0
+	else:
+		tmp = 1
+	return tmp
 
 def check_point(is_take_effect = True):
 	if is_take_effect == True:
